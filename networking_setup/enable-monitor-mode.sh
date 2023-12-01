@@ -6,23 +6,12 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Check if the wireless interface is provided as an argument
-if [ -z "$1" ]; then
-    echo "Usage: $0 <interface>"
-    exit 1
-fi
-
-interface="$1"
-
-# Check if the interface exists
-if ! iw dev "$interface" info &>/dev/null; then
-    echo "Error: Interface $interface not found."
-    exit 1
-fi
+# Set the wireless interface to wlan1
+interface="wlan1"
 
 # Check if airmon-ng is installed
 if ! command -v airmon-ng &>/dev/null; then
-    echo "Error: airmon-ng not found. Please install aircrack-ng package."
+    echo "Error: airmon-ng not found. Please install the aircrack-ng package."
     exit 1
 fi
 
@@ -39,3 +28,4 @@ else
 fi
 
 exit 0
+
