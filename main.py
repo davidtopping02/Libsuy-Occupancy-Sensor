@@ -1,74 +1,34 @@
-import threading
-from scapy.all import sniff
-from collections import Counter
-import time
+from occupancy_counting.package_scanner import PackageScanner
+from database_service.mariaDb import DatabaseManager
+import asyncio
 
-# Global variables
-unique_macs = Counter()
-mac_counts_array = []
-sniffing_flag = threading.Event()
+class OccupancySensor():
 
-def packet_callback(packet):
-    src_mac = None
+    # Constructor to initialize the PackageScanner and DatabaseManager
+    def __init__(self):
 
-    if packet.haslayer("Ethernet"):
-        src_mac = packet["Ethernet"].src
-    elif packet.haslayer("Dot11"):
-        src_mac = packet["Dot11"].addr2
+        self.network_traffic_scanner = PackageScanner("wlp2s0")
+        self.db_manager = DatabaseManager('occupancySensorLog.txt')
 
-    if src_mac:
-        unique_macs[src_mac] += 1
+    # Asynchronous method to get the current occupancy by scanning network traffic
+    async def getCurrentOccupancy(self):
 
-def printRuntime(startTime):
-    while sniffing_flag.is_set():
-        currentTime = time.time()
-        elapsedTime = currentTime - startTime
-        formattedTime = time.strftime("%H:%M:%S", time.gmtime(elapsedTime))
-        print(f"Elapsed time: [{formattedTime}]")
-        time.sleep(60)
+        scan_duration = 0.1
+        return await self.network_traffic_scanner.scan(scan_duration)
 
-def sniff_packets(interface, duration_minutes):
-    global sniffing_flag
-    sniffing_flag.set()
+    # Asynchronous method to run the lifecycle of the occupancy sensor
+    async def runSensorLifeCycle(self):
+        
+        while True:
+            scanTask = await sensor.getCurrentOccupancy()
+            print(scanTask)
+            # Appending a new line to the specified text file using the DatabaseManager
+            self.db_manager.append_to_file(str(scanTask))
 
-    print(f"Starting sniff on {interface} for {duration_minutes} minutes")
-    packets = sniff(iface=interface, prn=packet_callback, timeout=60 * duration_minutes, store=0)
-    print("Finished sniffing")
-
-    print("Calculating unique MACs")
-    num_unique_macs = len(unique_macs)
-
-    print(f"Number of Unique MAC Addresses: {num_unique_macs}")
-    mac_counts_array.append(num_unique_macs)
-    unique_macs.clear()
-
-    sniffing_flag.clear()
-
-def capture_packets(interface, duration_minutes):
-    while True:
-        start_time = time.time()
-
-        # Run sniff asynchronously
-        snifferThread = threading.Thread(target=sniff_packets, args=(interface, duration_minutes))
-        snifferThread.start()
-
-        # Run printRuntime asynchronously
-        timerThread = threading.Thread(target=printRuntime, args=(start_time,))
-        timerThread.start()
-
-        # Wait for the sniffing thread to complete
-        snifferThread.join()
-        timerThread.join()
-
+# Entry point of the script
 if __name__ == "__main__":
-    network_interface = "wlan1mon"
-    capture_duration_minutes = 10
 
     print("START")
-    try:
-        capture_packets(network_interface, duration_minutes=capture_duration_minutes)
-
-    except KeyboardInterrupt:
-        print("CAPTURE INTERUPTED")
-
+    sensor = OccupancySensor()
+    asyncio.run(sensor.runSensorLifeCycle())
     print("END")
