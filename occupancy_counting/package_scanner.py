@@ -22,9 +22,9 @@ class PackageScanner:
 
         self.unique_macs.clear()
 
-        print(f"Starting sniff on {self.interface} for {duration_minutes} minutes")
+        print(f"Starting scan on {self.interface} for {duration_minutes} minutes")
         packets = sniff(iface=self.interface, prn=self.packet_callback, timeout=60*duration_minutes, store=0)
-        print("Finished sniffing")
+        print("Finished scan")
 
         print("Calculating unique MACs")
         mac_count = len(self.unique_macs)

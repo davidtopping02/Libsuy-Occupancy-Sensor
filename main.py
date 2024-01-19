@@ -14,7 +14,7 @@ class OccupancySensor():
     # Asynchronous method to get the current occupancy by scanning network traffic
     async def getCurrentOccupancy(self):
 
-        scan_duration = 20
+        scan_duration = 5
         return await self.network_traffic_scanner.scan(scan_duration)
 
     async def runSensorLifeCycle(self):
