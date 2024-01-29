@@ -20,4 +20,9 @@ assignees: davidtopping02
 - [ ] ...
 
 
+### Definition of Done
+- [ ] Tested feature on a Pi
+- [ ] Unit tests written and passed
+
+
 ### Notes
