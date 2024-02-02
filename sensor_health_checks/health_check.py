@@ -3,6 +3,7 @@ import time
 import subprocess
 import logging
 
+
 class HealthChecker:
 
     def __init__(self):
@@ -19,16 +20,25 @@ class HealthChecker:
                 return True
 
             except (requests.ConnectionError, requests.Timeout) as exception:
-                # ff internet connection is not available, restart network services
-                logging.error('Network connection failed, restarting wpa_supplicant service')
-                subprocess.run(['systemctl', 'restart', 'wpa_supplicant'], check=True)
+
+                interface = "wlan0"
+
+                # if internet connection is not available, restart network services
+                logging.error(
+                    f'Network connection failed, restarting {interface}')
+
+                # restart wireless interface
+                subprocess.run(["sudo", "ifdown", interface], check=True)
+                subprocess.run(["sudo", "ifup", interface], check=True)
+
                 time.sleep(self.waitDuration)
 
     def checkMonitoringModeNetworkInterfaces(self, monitoring_interface):
         while True:
             try:
                 # check if the specified network interface is in monitoring mode
-                result = subprocess.run(['iwconfig', monitoring_interface], capture_output=True, text=True, check=True)
+                result = subprocess.run(
+                    ['iwconfig', monitoring_interface], capture_output=True, text=True, check=True)
 
                 # check if the output contains "Mode: Monitor"
                 if "Mode" in result.stdout and "Monitor" in result.stdout:
@@ -39,7 +49,8 @@ class HealthChecker:
             except subprocess.CalledProcessError:
                 # if the 'iwconfig' command fails, run the function to enable monitoring mode
                 self.runEnableMonitoringMode()
-                logging.error('No monitoring mode interface found, running start_occupancy_sensor.sh')
+                logging.error(
+                    'No monitoring mode interface found, running start_occupancy_sensor.sh')
                 time.sleep(self.waitDuration)
 
     def runEnableMonitoringMode(self):
