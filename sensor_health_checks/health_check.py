@@ -31,7 +31,9 @@ class HealthChecker:
                 subprocess.run(["sudo", "ifdown", interface], check=True)
                 subprocess.run(["sudo", "ifup", interface], check=True)
 
-                subprocess.run(["sudo", "ifup", interface], check=True)
+                # restart openvpn client service
+                subprocess.run(["sudo", "systemctk", "restart",
+                               "openvpn@client"], check=True)
 
                 time.sleep(self.waitDuration)
 
