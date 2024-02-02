@@ -31,6 +31,8 @@ class HealthChecker:
                 subprocess.run(["sudo", "ifdown", interface], check=True)
                 subprocess.run(["sudo", "ifup", interface], check=True)
 
+                subprocess.run(["sudo", "ifup", interface], check=True)
+
                 time.sleep(self.waitDuration)
 
     def checkMonitoringModeNetworkInterfaces(self, monitoring_interface):
