@@ -52,14 +52,13 @@ class HealthChecker:
 
             except subprocess.CalledProcessError:
                 # if the 'iwconfig' command fails, run the function to enable monitoring mode
-                self.runEnableMonitoringMode()
+                self.runBashScript('enable-monitoring-mode.sh')
                 logging.error(
-                    'No monitoring mode interface found, running start_occupancy_sensor.sh')
+                    'No monitoring mode interface found, running enable-monitoring-mode.sh')
                 time.sleep(self.waitDuration)
 
-    def runEnableMonitoringMode(self):
-        # run script to enable monitoring mode for the specified network interface
+    def runBashScript(self, scriptLocation):
         try:
-            subprocess.run(['sh', 'start_occupancy_sensor.sh'], check=True)
+            subprocess.run(['sh', scriptLocation], check=True)
         except subprocess.CalledProcessError as e:
-            logging.error('Failed to run start_occupancy_sensor.sh')
+            logging.error(f'Failed to run {scriptLocation}')
