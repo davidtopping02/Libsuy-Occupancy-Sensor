@@ -15,10 +15,6 @@ if ! command -v airmon-ng &>/dev/null; then
     exit 1
 fi
 
-# Kill processes that might interfere with airmon-ng
-echo "Killing interfering processes..."
-airmon-ng check kill
-
 # Put the interface into monitoring mode using airmon-ng
 echo "Putting $interface into monitoring mode..."
 airmon-ng start "$interface"
