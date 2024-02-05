@@ -21,7 +21,7 @@ class OccupancyDataApiClient:
         try:
             response = requests.post(self.api_url, json=payload)
             if response.status_code == 200:
-                logging.info("Data successfully submitted to the API.")
+                logging.info("Data successfully posted to the API.")
             elif response.status_code == 400:
                 logging.error("Bad request. Check your payload data.")
             elif response.status_code == 404:
