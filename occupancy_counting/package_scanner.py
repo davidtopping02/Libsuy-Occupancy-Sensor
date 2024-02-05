@@ -1,9 +1,11 @@
 import asyncio
+import logging
 from scapy.all import sniff
 from collections import Counter
 
+
 class PackageScanner:
-    
+
     def __init__(self, interface):
         self.interface = interface
         self.unique_macs = Counter()
@@ -22,19 +24,20 @@ class PackageScanner:
 
         self.unique_macs.clear()
 
-        print(f"Starting scan on {self.interface} for {duration_minutes} minutes")
-        packets = sniff(iface=self.interface, prn=self.packet_callback, timeout=60*duration_minutes, store=0)
-        print("Finished scan")
+        logging.info(
+            f"Starting scan on {self.interface} for {duration_minutes} minutes")
 
-        print("Calculating unique MACs")
+        packets = sniff(iface=self.interface, prn=self.packet_callback,
+                        timeout=60*duration_minutes, store=0)
+
         mac_count = len(self.unique_macs)
+
+        logging.info(f"{mac_count} unique macs found")
 
         return mac_count
 
-
-
     async def scan(self, scan_duration):
-        
+
         mac_count = await self.sniff_packets(scan_duration)
 
         return mac_count
