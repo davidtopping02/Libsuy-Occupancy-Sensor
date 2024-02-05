@@ -1,3 +1,6 @@
+import fcntl
+import socket
+import struct
 import requests
 import time
 import subprocess
@@ -5,60 +8,72 @@ import logging
 
 
 class HealthChecker:
-
     def __init__(self):
-        self.waitDuration = 60
+        self.wait_duration = 60
 
-    def checkInternetConnection(self):
+    def check_internet_connection(self):
         url = "http://google.com/"
         timeout = 3
 
         while True:
             try:
-                # requesting URL to check internet connection
-                request = requests.get(url, timeout=timeout)
+                response = requests.get(url, timeout=timeout)
+                logging.info("internet established")
                 return True
 
             except (requests.ConnectionError, requests.Timeout) as exception:
-
                 interface = "wlan0"
 
-                # if internet connection is not available, restart network services
                 logging.error(
                     f'Network connection failed, restarting {interface}')
 
-                # restart wireless interface
                 subprocess.run(["sudo", "ifdown", interface], check=True)
                 subprocess.run(["sudo", "ifup", interface], check=True)
-
-                # restart openvpn client service
                 subprocess.run(["sudo", "systemctl", "restart",
                                "openvpn@client"], check=True)
 
-                time.sleep(self.waitDuration)
+                time.sleep(self.wait_duration)
 
-    def checkMonitoringModeNetworkInterfaces(self, monitoring_interface):
+    def check_monitoring_mode_network_interfaces(self, monitoring_interface):
         while True:
             try:
-                # check if the specified network interface is in monitoring mode
                 result = subprocess.run(
                     ['iwconfig', monitoring_interface], capture_output=True, text=True, check=True)
 
-                # check if the output contains "Mode: Monitor"
                 if "Mode" in result.stdout and "Monitor" in result.stdout:
+                    logging.info(f"{monitoring_interface} in monitoring mode")
                     return True
                 else:
-                    self.runEnableMonitoringMode()
+                    logging.error(
+                    'No monitoring mode interface found, running enable-monitoring-mode.sh')
+                    self.run_bash_script('enable-monitoring-mode.sh')
 
             except subprocess.CalledProcessError:
-                # if the 'iwconfig' command fails, run the function to enable monitoring mode
-                self.runBashScript('enable-monitoring-mode.sh')
+                self.run_bash_script('enable-monitoring-mode.sh')
                 logging.error(
                     'No monitoring mode interface found, running enable-monitoring-mode.sh')
-                time.sleep(self.waitDuration)
+                time.sleep(self.wait_duration)
 
-    def runBashScript(self, scriptLocation):
+    def run_bash_script(self, script_location):
         try:
-            subprocess.run(['sh', scriptLocation], check=True)
+            subprocess.run(['sh', script_location], check=True)
         except subprocess.CalledProcessError as e:
-            logging.error(f'Failed to run {scriptLocation}')
+            logging.error(f'Failed to run {script_location}')
+
+    def get_sensor_id(self):
+        try:
+            # Create a socket object for IPv4
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            
+            # Use ioctl to get the IP address associated with the 'tun0' interface
+            ip_address = socket.inet_ntoa(fcntl.ioctl(
+                sock.fileno(),
+                0x8915,  # SIOCGIFADDR
+                struct.pack('256s', b'tun0')[:32]
+            )[20:24])
+            
+            logging.info(f"sensor id retrieved: {ip_address}")
+            return ip_address
+        except Exception as e:
+            logging.error(f"Error: {e}")
+            return None
