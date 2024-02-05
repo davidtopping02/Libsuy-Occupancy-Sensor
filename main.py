@@ -44,7 +44,7 @@ class OccupancySensor:
 
         while True:
             scan_result = await self.get_current_occupancy()
-            OccupancyDataApiClient.submit_occupancy_data(
+            self.occupancy_api_client.submit_occupancy_data(
                 self.sensor_id, scan_result)
 
 
