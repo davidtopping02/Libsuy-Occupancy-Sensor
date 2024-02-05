@@ -32,7 +32,7 @@ class OccupancySensor:
                             filemode='a', format='%(levelname)s:[%(asctime)s]:%(name)s: %(message)s')
 
     async def get_current_occupancy(self):
-        scan_duration = 5
+        scan_duration = 15
         return await self.network_traffic_scanner.scan(scan_duration)
 
     async def run_sensor_lifecycle(self):
