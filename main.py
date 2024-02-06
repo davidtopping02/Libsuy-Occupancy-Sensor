@@ -18,7 +18,7 @@ class OccupancySensor:
         self.occupancy_api_client = OccupancyDataApiClient()
         self.health_checker = HealthChecker()
 
-    def configure_logging(self, log_directory="logs/"):
+    def configure_logging(self, log_directory="/home/pi/UOD-Occupancy-Sensor/logs/"):
         # create log directory if it doesn't exist
         if not os.path.exists(log_directory):
             os.makedirs(log_directory)
