@@ -9,7 +9,7 @@ class OccupancyDataApiClient:
 
     def submit_occupancy_data(self, sensor_id, occupancy_count):
 
-        # Get the current timestamp in MySQL format
+        # current timestamp in MySQL format
         current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         payload = {
@@ -22,15 +22,20 @@ class OccupancyDataApiClient:
             response = requests.post(self.api_url, json=payload)
             if response.status_code == 200:
                 logging.info("Data successfully posted to the API.")
-            elif response.status_code == 400:
-                logging.error("Bad request. Check your payload data.")
-            elif response.status_code == 404:
-                logging.error("API endpoint not found.")
-            elif response.status_code == 500:
-                logging.error("Internal server error on the API.")
             else:
-                logging.error(
-                    f"Unexpected response status code: {response.status_code}")
+                error_message = f"Error with status code {response.status_code}. "
+                if response.status_code == 400:
+                    error_message += "Bad request. Check your payload data."
+                elif response.status_code == 404:
+                    error_message += "API endpoint not found."
+                elif response.status_code == 500:
+                    error_message += "Internal server error on the API."
+                else:
+                    error_message += "Unexpected response status code."
+
+                # log the error message along with the payload for more context
+                logging.error(f"{error_message} Payload: {payload}")
 
         except requests.exceptions.RequestException as e:
-            logging.error(f"An error occurred: {e}")
+            # log the exception along with the payload
+            logging.error(f"An error occurred: {e}. Payload: {payload}")

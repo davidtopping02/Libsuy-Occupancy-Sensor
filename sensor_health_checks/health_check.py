@@ -1,7 +1,6 @@
 import fcntl
 import socket
 import struct
-import requests
 import time
 import subprocess
 import logging
@@ -11,22 +10,24 @@ class HealthChecker:
     def __init__(self):
         self.wait_duration = 60
 
-    def check_internet_connection(self):
-        url = "http://google.com/"
-        timeout = 3
+    def check_connection(self):
+        ip_address = "10.8.0.1"
+        count = 4  # Number of ping attempts
 
         while True:
             try:
-                response = requests.get(url, timeout=timeout)
-                logging.info("internet established")
+                # ping the raspberry pi controller
+                subprocess.check_output(
+                    ["ping", "-c", str(count), ip_address], stderr=subprocess.STDOUT)
+                logging.info("Connection established")
                 return True
 
-            except (requests.ConnectionError, requests.Timeout) as exception:
+            except subprocess.CalledProcessError as e:
                 interface = "wlan0"
-
                 logging.error(
-                    f'Network connection failed, restarting {interface}')
+                    f'Ping {ip_address} failed, restarting {interface}')
 
+                # restart the network interface and OpenVPN
                 subprocess.run(["sudo", "ifdown", interface], check=True)
                 subprocess.run(["sudo", "ifup", interface], check=True)
                 subprocess.run(["sudo", "systemctl", "restart",
@@ -45,7 +46,7 @@ class HealthChecker:
                     return True
                 else:
                     logging.error(
-                    'No monitoring mode interface found, running enable-monitoring-mode.sh')
+                        'No monitoring mode interface found, running enable-monitoring-mode.sh')
                     self.run_bash_script('enable-monitoring-mode.sh')
 
             except subprocess.CalledProcessError:
@@ -64,14 +65,14 @@ class HealthChecker:
         try:
             # Create a socket object for IPv4
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            
+
             # Use ioctl to get the IP address associated with the 'tun0' interface
             ip_address = socket.inet_ntoa(fcntl.ioctl(
                 sock.fileno(),
                 0x8915,  # SIOCGIFADDR
                 struct.pack('256s', b'tun0')[:32]
             )[20:24])
-            
+
             logging.info(f"sensor id retrieved: {ip_address}")
             return ip_address
         except Exception as e:
