@@ -24,7 +24,7 @@ class OccupancySensor:
             os.makedirs(log_directory)
 
         # generate a log file name with the current date
-        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        current_date = datetime.now().strftime("%Y-%m-%d")
         log_file = f'{log_directory}{current_date}.log'
 
         # configure logging with the log file and format
@@ -38,7 +38,7 @@ class OccupancySensor:
     async def run_sensor_lifecycle(self):
 
         while True:
-            sensor.configure_logging()
+            self.configure_logging()
             logging.info("START SENSOR")
 
             now = datetime.now()
