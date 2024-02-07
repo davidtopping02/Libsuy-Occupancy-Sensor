@@ -25,11 +25,11 @@ class HealthChecker:
             except subprocess.CalledProcessError as e:
                 interface = "wlan0"
                 logging.error(
-                    f'Ping {ip_address} failed, restarting {interface}')
+                    f'Ping {ip_address} failed, restarting wpa_supplicant.service')
 
                 # restart the network interface and OpenVPN
-                subprocess.run(["sudo", "ifdown", interface], check=True)
-                subprocess.run(["sudo", "ifup", interface], check=True)
+                subprocess.run(["sudo", "systemctl", "restart",
+                               "wpa_supplicant"], check=True)
                 subprocess.run(["sudo", "systemctl", "restart",
                                "openvpn@client"], check=True)
 
