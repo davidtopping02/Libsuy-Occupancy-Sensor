@@ -1,4 +1,5 @@
 import asyncio
+import sys
 from datetime import datetime, timedelta
 import logging
 import os
@@ -8,8 +9,7 @@ from sensor_health_checks.health_check import HealthChecker
 
 
 class OccupancySensor:
-
-    def __init__(self):
+    def __init__(self, scan_duration=20):
         # initialise local objects
         self.monitoring_interface = "wlan1mon"
         self.sensor_id = None
@@ -17,6 +17,7 @@ class OccupancySensor:
             self.monitoring_interface)
         self.occupancy_api_client = OccupancyDataApiClient()
         self.health_checker = HealthChecker()
+        self.scan_duration = scan_duration
 
     def configure_logging(self, log_directory="/home/pi/UOD-Occupancy-Sensor/logs/"):
         # create log directory if it doesn't exist
@@ -32,11 +33,10 @@ class OccupancySensor:
                             filemode='a', format='%(levelname)s:[%(asctime)s]:%(name)s: %(message)s')
 
     async def get_current_occupancy(self):
-        scan_duration = 20
-        return await self.network_traffic_scanner.scan(scan_duration)
+        # Use self.scan_duration as the scan duration
+        return await self.network_traffic_scanner.scan(self.scan_duration)
 
     async def run_sensor_lifecycle(self):
-
         while True:
             self.configure_logging()
             logging.info("START SENSOR")
@@ -56,12 +56,21 @@ class OccupancySensor:
                     self.sensor_id, scan_result)
 
                 if datetime.now() >= end_of_day:
-                    logging.info(
-                        "END SENSOR - breaking main loop. Goodnight.")
+                    logging.info("END SENSOR - breaking main loop. Goodnight.")
                     # exit the inner loop
                     break
 
 
 if __name__ == "__main__":
-    sensor = OccupancySensor()
+    # check if a scan duration was provided as a command-line argument
+    if len(sys.argv) > 1:
+        try:
+            scan_duration = int(sys.argv[1])
+        except ValueError:
+            print("Invalid scan duration provided. Using default value.")
+            scan_duration = 20
+    else:
+        scan_duration = 20
+
+    sensor = OccupancySensor(scan_duration=scan_duration)
     asyncio.run(sensor.run_sensor_lifecycle())

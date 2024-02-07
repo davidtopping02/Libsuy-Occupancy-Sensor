@@ -14,10 +14,9 @@ log_file="$parent_directory/main.log"
 
 # Check if main.py exists in the parent directory
 if [ -e "$parent_directory/main.py" ]; then
-    # Redirect the output and errors of main.py to the log file and run it in the background
-    (python3 "$parent_directory/main.py" >> "$log_file" 2>&1 &)
+    # Redirect the output and errors of main.py to the log file and run it with a scan duration parameter of 10 in the background
+    (python3 "$parent_directory/main.py" 10 >> "$log_file" 2>&1 &)
 
-    # Optionally, you can add a sleep to give it some time to start
     sleep 5
 
     echo "main.py started in the background. Logs are in $log_file"
