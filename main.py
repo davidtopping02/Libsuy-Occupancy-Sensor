@@ -1,5 +1,5 @@
 import asyncio
-import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 from occupancy_counting.package_scanner import PackageScanner
@@ -32,25 +32,36 @@ class OccupancySensor:
                             filemode='a', format='%(levelname)s:[%(asctime)s]:%(name)s: %(message)s')
 
     async def get_current_occupancy(self):
-        scan_duration = 15
+        scan_duration = 20
         return await self.network_traffic_scanner.scan(scan_duration)
 
     async def run_sensor_lifecycle(self):
 
-        self.health_checker.check_internet_connection()
-        self.sensor_id = self.health_checker.get_sensor_id()
-        self.health_checker.check_monitoring_mode_network_interfaces(
-            self.monitoring_interface)
-
         while True:
-            scan_result = await self.get_current_occupancy()
-            self.occupancy_api_client.submit_occupancy_data(
-                self.sensor_id, scan_result)
+            sensor.configure_logging()
+            logging.info("START SENSOR")
+
+            now = datetime.now()
+            end_of_day = datetime(now.year, now.month,
+                                  now.day) + timedelta(days=1)
+
+            while True:
+                self.health_checker.check_connection()
+                self.sensor_id = self.health_checker.get_sensor_id()
+                self.health_checker.check_monitoring_mode_network_interfaces(
+                    self.monitoring_interface)
+
+                scan_result = await self.get_current_occupancy()
+                self.occupancy_api_client.submit_occupancy_data(
+                    self.sensor_id, scan_result)
+
+                if datetime.now() >= end_of_day:
+                    logging.info(
+                        "END SENSOR - breaking main loop. Goodnight.")
+                    # exit the inner loop
+                    break
 
 
 if __name__ == "__main__":
     sensor = OccupancySensor()
-    sensor.configure_logging()
-    logging.info("START SENSOR")
     asyncio.run(sensor.run_sensor_lifecycle())
-    logging.info("END SENSOR")
