@@ -9,12 +9,8 @@ class OccupancyDataApiClient:
 
     def submit_occupancy_data(self, sensor_id, occupancy_count):
 
-        # current timestamp in MySQL format
-        current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
         payload = {
             'sensor_id': sensor_id,
-            'timestamp': current_timestamp,
             'occupancy_count': occupancy_count
         }
 
