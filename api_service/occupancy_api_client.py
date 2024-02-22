@@ -4,7 +4,7 @@ import requests
 
 
 class OccupancyDataApiClient:
-    def __init__(self, api_url="http://10.8.0.1:80/occupancy/add", config_file="config.json"):
+    def __init__(self, api_url="http://10.8.0.1:80/occupancy/add", config_file="/home/pi/UOD-Occupancy-Sensor/config.json"):
         self.api_url = api_url
         with open(config_file) as f:
             config = json.load(f)
