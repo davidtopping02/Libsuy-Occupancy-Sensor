@@ -50,7 +50,7 @@ class HealthChecker:
                     self.run_bash_script('enable-monitoring-mode.sh')
 
             except subprocess.CalledProcessError:
-                self.run_bash_script('enable-monitoring-mode.sh')
+                self.run_bash_script('../../scripts/enable-monitoring-mode.sh')
                 logging.error(
                     'No monitoring mode interface found, running enable-monitoring-mode.sh')
                 time.sleep(self.wait_duration)
