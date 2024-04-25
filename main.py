@@ -32,8 +32,11 @@ class OccupancySensor:
         logging.basicConfig(level=logging.INFO, filename=log_file,
                             filemode='a', format='%(levelname)s:[%(asctime)s]:%(name)s: %(message)s')
 
+    def reboot_system(self):
+        logging.info("Initiating daily system reboot")
+        os.system('sudo reboot')
+
     async def get_current_occupancy(self):
-        # Use self.scan_duration as the scan duration
         return await self.network_traffic_scanner.scan(self.scan_duration)
 
     async def run_sensor_lifecycle(self):
@@ -57,7 +60,7 @@ class OccupancySensor:
 
                 if datetime.now() >= end_of_day:
                     logging.info("END SENSOR - breaking main loop. Goodnight.")
-                    # exit the inner loop
+                    self.reboot_system()
                     break
 
 
